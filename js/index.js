@@ -5,12 +5,15 @@ import collisions from '../data/collisions.js'
     const canvas = document.getElementById('canvas')
     const ctx = canvas.getContext('2d')
     
+    const width = canvas.width = document.getElementById('app').offsetWidth
+    const height = canvas.height = document.getElementById('app').offsetHeight
+
     let tileWidth = 70
     let tileHeight = 40
 
     const collisionsMap = []
-    for(let i = 0; i < collisions.length; i += tileWidth) {
-        collisionsMap.push(collisions.slice(i, tileWidth + i))
+    for(let i = 0; i < collisions.length; i += 70) {
+        collisionsMap.push(collisions.slice(i, 70 + i))
     }
 
     const offset = {
@@ -33,7 +36,7 @@ import collisions from '../data/collisions.js'
 
     Boundary.prototype.draw = function(){
         // ctx.fillStyle = 'red'
-        ctx.fillStyle = 'rgba(255, 0, 0, 0.2)'
+        ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'
         ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
     }
 
@@ -41,20 +44,18 @@ import collisions from '../data/collisions.js'
 
     collisionsMap.forEach((row, i) => {
         row.forEach((symbol, j) => {
-            if(symbol === 2561)
-            boundaries.push(new Boundary({
-                position: {
-                    x: j * Boundary.width + offset.x,
-                    y: i * Boundary.height + offset.y
-                }
-            }))
+            if(symbol === 2561) {
+                boundaries.push(new Boundary({
+                    position: {
+                        x: j * Boundary.width + offset.x,
+                        y: i * Boundary.height + offset.y
+                    }
+                }))
+            }
         })
     })
-
-    console.log(boundaries)
-
-    const width = canvas.width = document.getElementById('app').offsetWidth
-    const height = canvas.height = document.getElementById('app').offsetHeight
+    console.log(Boundary.width)
+    console.log(boundaries) 
 
     const image = new Image()
     image.src = './img/test-zoom-400.png'
@@ -66,18 +67,18 @@ import collisions from '../data/collisions.js'
         this.image = image
         this.position = position
         this.velocity = velocity
-        this.frames = frames
+        this.frames = { ...frames, val: 0 }
 
         this.image.addEventListener('load', () => {
             this.width = this.image.width / this.frames.max
-            this.height = this.image.height / this.frames.max
+            this.height = this.image.height
         })
     }
 
     Sprite.prototype.draw = function(){
         // ctx.drawImage(this.image, this.position.x, this.position.y)
         ctx.drawImage(this.image,
-            0,
+            this.frames.val * this.width,
             0,
             this.image.width / this.frames.max,
             this.image.height,
@@ -86,6 +87,10 @@ import collisions from '../data/collisions.js'
             this.image.width / this.frames.max,
             this.image.height, 
         )
+
+        // 모션 0 ~ 3 * this.width
+        if(this.frames.val < this.frames.max - 1) this.frames.val++
+        else this.frames.val = 0 
     }
 
     // this.position.x - ( this.image.width / 4 ) / 2, 
@@ -102,8 +107,8 @@ import collisions from '../data/collisions.js'
     const player = new Sprite({
         image: playerImage,
         position: {
-            x: 200 - ( playerImage.width / 4 ) / 2,
-            y: 600 - ( playerImage.height / 2 )
+            x: canvas.width / 2 - 192 / 4 / 2,
+            y: 100
         },
         frames: {
             max: 4,
@@ -129,11 +134,15 @@ import collisions from '../data/collisions.js'
     const movable = [background, ...boundaries]
 
     function rectangularCollision({ rectangle1, rectangle2 }){
+
+        console.log(rectangle1.width)
+        console.log(rectangle1.height)
+
         return (
             rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
             rectangle1.position.x <= rectangle2.position.x + rectangle2.width &&
-            rectangle1.position.y + rectangle1.height >= rectangle2.position.y &&
-            rectangle1.position.y <= rectangle2.position.y + rectangle2.height
+            rectangle1.position.y <= rectangle2.position.y + rectangle2.height &&
+            rectangle1.position.y + rectangle1.height >= rectangle2.position.y 
         )
     }
 
