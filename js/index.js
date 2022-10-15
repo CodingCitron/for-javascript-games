@@ -68,10 +68,11 @@ import collisions from '../data/collisions.js'
         this.position = position
         this.velocity = velocity
         this.frames = { ...frames, val: 0 }
-
+        
+        // 주의 
         this.image.addEventListener('load', () => {
             this.width = this.image.width / this.frames.max
-            this.height = this.image.height
+            this.height = this.image.height 
         })
     }
 
